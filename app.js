@@ -1,4 +1,5 @@
 var toolkit = require('jsdx-toolkit');
+var Ofono = require('jsdx-ofono');
 
 var buttonNumber = [ '1', '2', '3', '4', '5', '6', '7', '8', '9', '*', '0', '#' ];
 function createButton(index, displayPanel) {
@@ -13,6 +14,12 @@ function createButton(index, displayPanel) {
 
 /* Create a new application */
 var app = new toolkit.Application('VoiceCall');
+var vcm;
+var ofono = new Ofono('/huawei_0', function() {
+vcm = new Ofono.VoiceCallManager(ofono.modem);
+ofono.modem.powered = true;
+ofono.modem.online = true;
+});
 
 /* Create a new window */
 app.createWindow(function(window) {
@@ -44,8 +51,11 @@ app.createWindow(function(window) {
 	var callingPanel = new toolkit.Widget.BoxLayout;
 	callingPanel.rotate(toolkit.Y_AXIS, 180, window.width * 0.5, window.height * 0.5, 0);
 	callingPanel.opacity = 0;
+  callingPanel.hide();
 
 	var callingSpinner =  new toolkit.Widget.Spinner;
+  callingSpinner.width = 60;
+  callingSpinner.height = 60;
 	callingPanel.add(callingSpinner, -1);
 
 	var statusLabel = new toolkit.Text('Calling ...');
@@ -54,7 +64,7 @@ app.createWindow(function(window) {
 	callingPanel.add(statusLabel, -1);
 
 	callingPanel.setAnchorFromGravity = toolkit.GRAVITY_CENTER;
-	callingPanel.x = window.width * 0.5 - 50;
+	callingPanel.x = 0;
 	callingPanel.y = window.height * 0.5;
 	layout.add(callingPanel);
 
@@ -87,6 +97,7 @@ app.createWindow(function(window) {
 	var callButton = new toolkit.Widget.Button('Call Now!');
 	callButton.height = 60;
 	callButton.on(toolkit.EVENT_CLICK, function() {
+    callingPanel.show();
 		panel.animate(toolkit.EASE_OUT_CUBIC, 600, {
 			'rotation-angle-y': 180,
 			'opacity': 0
@@ -96,8 +107,28 @@ app.createWindow(function(window) {
 			'rotation-angle-y': 360,
 			'opacity': 255
 		});
+    /* call */
+    vcm.dial(dp.text);
+
 	});
 	panel.add(callButton, -1);
+
+	var hangupButton = new toolkit.Widget.Button('Hang up');
+	hangupButton.height = 60;
+	hangupButton.on(toolkit.EVENT_CLICK, function() {
+		panel.animate(toolkit.EASE_OUT_CUBIC, 600, {
+			'rotation-angle-y': 360,
+			'opacity': 255
+		});
+
+		callingPanel.animate(toolkit.EASE_OUT_CUBIC, 600, {
+			'rotation-angle-y': 180,
+			'opacity': 0
+		});
+    /* hang up */
+    vcm.hangupAll();
+	});
+	callingPanel.add(hangupButton, -1);
 
 
 });
