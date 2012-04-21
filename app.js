@@ -5,7 +5,6 @@ function createButton(index, displayPanel) {
 	var button = new toolkit.Widget.Button(buttonNumber[index]);
 
 	button.on(toolkit.EVENT_CLICK, function() {
-		console.log(button);
 		displayPanel.text += button.label;
 	});
 
@@ -31,12 +30,38 @@ app.createWindow(function(window) {
 	window.show();
 
 	/* Layout */
-	var panel = new toolkit.Widget.BoxLayout
+	//var layout = new toolkit.Widget.BoxLayout;
+	var layout = new toolkit.Group;
+	window.setChild(layout);
+
+	/* Main Panel */
+	var panel = new toolkit.Widget.BoxLayout;
 	panel.orientation = toolkit.Widget.ORIENTATION_VERTICAL;
-	window.setChild(panel);
+	panel.rotate(toolkit.Y_AXIS, 0, window.width * 0.5, window.height * 0.5, 0);
+	layout.add(panel);
+
+	/* Calling */
+	var callingPanel = new toolkit.Widget.BoxLayout;
+	callingPanel.rotate(toolkit.Y_AXIS, 180, window.width * 0.5, window.height * 0.5, 0);
+	callingPanel.opacity = 0;
+
+	var callingSpinner =  new toolkit.Widget.Spinner;
+	callingPanel.add(callingSpinner, -1);
+
+	var statusLabel = new toolkit.Text('Calling ...');
+	statusLabel.setFontName('Droid Sans 28');
+	statusLabel.setColor(255, 255, 255, 255);
+	callingPanel.add(statusLabel, -1);
+
+	callingPanel.setAnchorFromGravity = toolkit.GRAVITY_CENTER;
+	callingPanel.x = window.width * 0.5 - 50;
+	callingPanel.y = window.height * 0.5;
+	layout.add(callingPanel);
 
 	/* Display Panel */
-	var dp = new toolkit.Widget.Label;
+	var dp = new toolkit.Text;
+	dp.setFontName('Droid Sans 28');
+	dp.setColor(255, 255, 255, 255);
 	dp.height = 60;
 	panel.add(dp, -1);
 
@@ -61,7 +86,20 @@ app.createWindow(function(window) {
 	/* Calling Button */
 	var callButton = new toolkit.Widget.Button('Call Now!');
 	callButton.height = 60;
+	callButton.on(toolkit.EVENT_CLICK, function() {
+		panel.animate(toolkit.EASE_OUT_CUBIC, 600, {
+			'rotation-angle-y': 180,
+			'opacity': 0
+		});
+
+		callingPanel.animate(toolkit.EASE_OUT_CUBIC, 600, {
+			'rotation-angle-y': 360,
+			'opacity': 255
+		});
+	});
 	panel.add(callButton, -1);
+
+
 });
 
 app.run();
